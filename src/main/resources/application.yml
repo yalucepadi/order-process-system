@@ -1,0 +1,26 @@
+app:
+  mongodb:
+    database: exampleDb
+    uri: "mongodb://127.0.0.1:27017"
+  api:
+    port: 9898
+
+grpc:
+  server:
+    port: 9090
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info,metrics
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  config: classpath:log4j2.yml

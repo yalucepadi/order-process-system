@@ -1,0 +1,59 @@
+Configuration:
+  status: WARN
+  monitorInterval: 30
+
+  Properties:
+    Property:
+      - name: LOG_PATTERN
+        value: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+      - name: LOG_DIR
+        value: logs
+
+  Appenders:
+    Console:
+      name: Console
+      target: SYSTEM_OUT
+      PatternLayout:
+        pattern: ${LOG_PATTERN}
+
+    RollingFile:
+      name: FileAppender
+      fileName: ${LOG_DIR}/application.log
+      filePattern: ${LOG_DIR}/application-%d{yyyy-MM-dd}-%i.log.gz
+      PatternLayout:
+        pattern: ${LOG_PATTERN}
+      Policies:
+        TimeBasedTriggeringPolicy:
+          interval: 1
+          modulate: true
+        SizeBasedTriggeringPolicy:
+          size: 10MB
+      DefaultRolloverStrategy:
+        max: 10
+
+  Loggers:
+    Logger:
+      - name: com.hacom
+        level: TRACE
+        additivity: false
+        AppenderRef:
+          - ref: Console
+          - ref: FileAppender
+      - name: akka
+        level: INFO
+        additivity: false
+        AppenderRef:
+          - ref: Console
+          - ref: FileAppender
+      - name: org.springframework
+        level: INFO
+        additivity: false
+        AppenderRef:
+          - ref: Console
+          - ref: FileAppender
+
+    Root:
+      level: INFO
+      AppenderRef:
+        - ref: Console
+        - ref: FileAppender

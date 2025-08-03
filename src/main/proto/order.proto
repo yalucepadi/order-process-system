@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.hacom.grpc";
+option java_outer_classname = "OrderProto";
+
+package order;
+
+service OrderService {
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
+}
+
+message CreateOrderRequest {
+  string order_id = 1;
+  string customer_id = 2;
+  string customer_phone_number = 3;
+  repeated string items = 4;
+}
+
+message CreateOrderResponse {
+  string order_id = 1;
+  string status = 2;
+}
