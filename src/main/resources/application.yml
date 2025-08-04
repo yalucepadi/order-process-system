@@ -1,3 +1,6 @@
+server:
+  port: 9898
+
 app:
   mongodb:
     database: exampleDb
@@ -15,6 +18,8 @@ management:
       exposure:
         include: prometheus,health,info,metrics
   endpoint:
+    health:
+      show-details: always
     prometheus:
       enabled: true
   metrics:

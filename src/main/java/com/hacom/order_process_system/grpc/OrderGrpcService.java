@@ -15,6 +15,7 @@ import net.devh.boot.grpc.server.service.GrpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 @GrpcService
 public class OrderGrpcService extends OrderServiceGrpc.OrderServiceImplBase {
@@ -23,10 +24,16 @@ public class OrderGrpcService extends OrderServiceGrpc.OrderServiceImplBase {
 
     private final ActorRef orderProcessingActor;
     private final Counter orderCounter;
+    private final Counter orderProcessedCounter;
 
     @Autowired
-    public OrderGrpcService(ActorRef orderProcessingActor, MeterRegistry meterRegistry) {
+    public OrderGrpcService(ActorRef orderProcessingActor,
+                            MeterRegistry meterRegistry,
+                            @Qualifier("orderProcessedCounter")
+                                Counter orderProcessedCounter) {
         this.orderProcessingActor = orderProcessingActor;
+        this.orderProcessedCounter = orderProcessedCounter;
+
         this.orderCounter = Counter.builder("orders.created")
                 .description("Number of orders created")
                 .register(meterRegistry);
