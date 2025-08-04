@@ -70,7 +70,6 @@ public class OrderController {
                 .onErrorResume(error -> {
                     logger.error("Error retrieving order with ID {}: {}", orderId, error.getMessage(), error);
 
-                    // Manejo específico para OrderException
                     if (error instanceof OrderException) {
                         return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
                                 .body(OderAdapter.responseGeneral(
@@ -80,7 +79,7 @@ public class OrderController {
                                         error.getMessage())));
                     }
 
-                    // Manejo para otras excepciones
+
                     return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                             .body(OderAdapter.responseGeneral(
                                     Constants.HTTP_500,
