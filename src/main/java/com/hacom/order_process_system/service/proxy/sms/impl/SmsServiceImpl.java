@@ -1,4 +1,4 @@
-package com.hacom.order_process_system.service;
+package com.hacom.order_process_system.service.proxy.sms.impl;
 
 import com.cloudhopper.smpp.SmppBindType;
 import com.cloudhopper.smpp.SmppSession;
@@ -10,6 +10,7 @@ import com.cloudhopper.smpp.pdu.PduRequest;
 import com.cloudhopper.smpp.pdu.PduResponse;
 import com.cloudhopper.smpp.pdu.SubmitSm;
 import com.cloudhopper.smpp.type.Address;
+import com.hacom.order_process_system.service.proxy.sms.SmsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -18,9 +19,9 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 @Service
-public class SmsService {
+public class SmsServiceImpl implements SmsService {
 
-    private static final Logger logger = LoggerFactory.getLogger(SmsService.class);
+    private static final Logger logger = LoggerFactory.getLogger(SmsServiceImpl.class);
 
     private DefaultSmppClient client;
     private SmppSession session;
@@ -59,7 +60,7 @@ public class SmsService {
             // o implementar reconexión automática
         }
     }
-
+   @Override
     public void sendSms(String phoneNumber, String message) {
         if (session == null || !session.isBound()) {
             logger.warn("SMPP session not available. SMS not sent to {}: {}", phoneNumber, message);
