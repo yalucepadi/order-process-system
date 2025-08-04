@@ -1,6 +1,6 @@
 package com.hacom.order_process_system.repository;
 
-import com.hacom.order_process_system.model.Order;
+import com.hacom.order_process_system.model.request.OrderRequest;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
@@ -11,10 +11,10 @@ import reactor.core.publisher.Mono;
 import java.time.OffsetDateTime;
 
 @Repository
-public interface OrderRepository extends ReactiveMongoRepository<Order, ObjectId> {
+public interface OrderRepository extends ReactiveMongoRepository<OrderRequest, ObjectId> {
 
-    Mono<Order> findByOrderId(String orderId);
+    Mono<OrderRequest> findByOrderId(String orderId);
 
     @Query("{ 'ts' : { $gte: ?0, $lte: ?1 } }")
-    Flux<Order> findByTsBetween(OffsetDateTime startDate, OffsetDateTime endDate);
+    Flux<OrderRequest> findByTsBetween(OffsetDateTime startDate, OffsetDateTime endDate);
 }

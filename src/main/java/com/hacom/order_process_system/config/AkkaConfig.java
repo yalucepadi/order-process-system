@@ -4,7 +4,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import com.hacom.order_process_system.actor.OrderProcessingActor;
 import com.hacom.order_process_system.repository.OrderRepository;
-import com.hacom.order_process_system.service.SmsService;
+import com.hacom.order_process_system.service.proxy.sms.impl.SmsServiceImpl;
 import io.micrometer.core.instrument.Counter;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
@@ -29,11 +29,11 @@ public class AkkaConfig {
     @Bean
     public ActorRef orderProcessingActor(ActorSystem actorSystem,
                                          OrderRepository orderRepository,
-                                         SmsService smsService,
+                                         SmsServiceImpl smsServiceImpl,
                                          Counter orderProcessedCounter ) {
         logger.info("Creating OrderProcessingActor");
         return actorSystem.actorOf(OrderProcessingActor.props(orderRepository,
-                smsService,orderProcessedCounter), "orderProcessingActor");
+                smsServiceImpl,orderProcessedCounter), "orderProcessingActor");
     }
 
     @PreDestroy

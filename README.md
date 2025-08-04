@@ -41,7 +41,7 @@ src/
 │   │   └── service/
 │   │       └── SmsService.java                  # Servicio SMPP
 │   ├── proto/
-│   │   └── order.proto                          # Definición gRPC
+│   │   └── orderRequest.proto                          # Definición gRPC
 │   └── resources/
 │       ├── application.yml                      # Configuración principal
 │       └── log4j2.yml                           # Configuración logging
@@ -80,7 +80,7 @@ app:
 ### 1. Clonar el repositorio
 ```bash
 git clone <repository-url>
-cd order-processing-system
+cd orderRequest-processing-system
 ```
 
 ### 2. Compilar el proyecto
@@ -183,7 +183,7 @@ grpcurl -plaintext -d '{
   "customer_id": "CUST001",
   "customer_phone_number": "1234567890",
   "items": ["item1", "item2", "item3"]
-}' localhost:9090 order.OrderService/CreateOrder
+}' localhost:9090 orderRequest.OrderService/CreateOrder
 ```
 
 ### Usando curl (API REST)
@@ -250,7 +250,7 @@ Los logs se guardan en:
 tail -f logs/application.log
 
 # Filtrar logs de pedidos
-grep "Processing order" logs/application.log
+grep "Processing orderRequest" logs/application.log
 ```
 
 ## Autor

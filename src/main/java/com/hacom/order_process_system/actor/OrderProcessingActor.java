@@ -4,9 +4,9 @@ import akka.actor.AbstractActor;
 import akka.actor.Props;
 import com.hacom.grpc.CreateOrderRequest;
 import com.hacom.grpc.CreateOrderResponse;
-import com.hacom.order_process_system.model.Order;
+import com.hacom.order_process_system.model.request.OrderRequest;
 import com.hacom.order_process_system.repository.OrderRepository;
-import com.hacom.order_process_system.service.SmsService;
+import com.hacom.order_process_system.service.proxy.sms.impl.SmsServiceImpl;
 import io.grpc.stub.StreamObserver;
 import io.micrometer.core.instrument.Counter;
 import org.slf4j.Logger;
@@ -20,7 +20,7 @@ public class OrderProcessingActor extends AbstractActor {
     private static final Logger logger = LoggerFactory.getLogger(OrderProcessingActor.class);
 
     private final OrderRepository orderRepository;
-    private final SmsService smsService;
+    private final SmsServiceImpl smsServiceImpl;
     private final Counter orderProcessedCounter;
     public static class ProcessOrderMessage {
         private final CreateOrderRequest request;
@@ -40,14 +40,14 @@ public class OrderProcessingActor extends AbstractActor {
         }
     }
 
-    public OrderProcessingActor(OrderRepository orderRepository, SmsService smsService, Counter orderProcessedCounter) {
+    public OrderProcessingActor(OrderRepository orderRepository, SmsServiceImpl smsServiceImpl, Counter orderProcessedCounter) {
         this.orderRepository = orderRepository;
-        this.smsService = smsService;
+        this.smsServiceImpl = smsServiceImpl;
         this.orderProcessedCounter = orderProcessedCounter;
     }
 
-    public static Props props(OrderRepository orderRepository, SmsService smsService, Counter orderProcessedCounter) {
-        return Props.create(OrderProcessingActor.class, () -> new OrderProcessingActor(orderRepository, smsService,
+    public static Props props(OrderRepository orderRepository, SmsServiceImpl smsServiceImpl, Counter orderProcessedCounter) {
+        return Props.create(OrderProcessingActor.class, () -> new OrderProcessingActor(orderRepository, smsServiceImpl,
                 orderProcessedCounter));
     }
 
@@ -66,7 +66,7 @@ public class OrderProcessingActor extends AbstractActor {
             logger.info("Processing order: {}", request.getOrderId());
 
             // Crear el objeto Order
-            Order order = new Order(
+            OrderRequest orderRequest = new OrderRequest(
                     request.getOrderId(),
                     request.getCustomerId(),
                     request.getCustomerPhoneNumber(),
@@ -76,7 +76,7 @@ public class OrderProcessingActor extends AbstractActor {
             );
 
             // Guardar en MongoDB
-            orderRepository.save(order)
+            orderRepository.save(orderRequest)
                     .subscribe(
                             savedOrder -> {
                                 logger.info("Order saved successfully: {}", savedOrder.getOrderId());
@@ -85,7 +85,7 @@ public class OrderProcessingActor extends AbstractActor {
 
                                 // Enviar SMS
                                 String smsMessage = "Your order " + request.getOrderId() + " has been processed";
-                                smsService.sendSms(request.getCustomerPhoneNumber(), smsMessage);
+                                smsServiceImpl.sendSms(request.getCustomerPhoneNumber(), smsMessage);
 
                                 // Enviar respuesta gRPC
                                 CreateOrderResponse response = CreateOrderResponse.newBuilder()
