@@ -8,6 +8,7 @@ import com.hacom.order_process_system.model.Order;
 import com.hacom.order_process_system.repository.OrderRepository;
 import com.hacom.order_process_system.service.SmsService;
 import io.grpc.stub.StreamObserver;
+import io.micrometer.core.instrument.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,7 @@ public class OrderProcessingActor extends AbstractActor {
 
     private final OrderRepository orderRepository;
     private final SmsService smsService;
-
+    private final Counter orderProcessedCounter;
     public static class ProcessOrderMessage {
         private final CreateOrderRequest request;
         private final StreamObserver<CreateOrderResponse> responseObserver;
@@ -39,13 +40,15 @@ public class OrderProcessingActor extends AbstractActor {
         }
     }
 
-    public OrderProcessingActor(OrderRepository orderRepository, SmsService smsService) {
+    public OrderProcessingActor(OrderRepository orderRepository, SmsService smsService, Counter orderProcessedCounter) {
         this.orderRepository = orderRepository;
         this.smsService = smsService;
+        this.orderProcessedCounter = orderProcessedCounter;
     }
 
-    public static Props props(OrderRepository orderRepository, SmsService smsService) {
-        return Props.create(OrderProcessingActor.class, () -> new OrderProcessingActor(orderRepository, smsService));
+    public static Props props(OrderRepository orderRepository, SmsService smsService, Counter orderProcessedCounter) {
+        return Props.create(OrderProcessingActor.class, () -> new OrderProcessingActor(orderRepository, smsService,
+                orderProcessedCounter));
     }
 
     @Override
@@ -77,6 +80,8 @@ public class OrderProcessingActor extends AbstractActor {
                     .subscribe(
                             savedOrder -> {
                                 logger.info("Order saved successfully: {}", savedOrder.getOrderId());
+
+                                orderProcessedCounter.increment();
 
                                 // Enviar SMS
                                 String smsMessage = "Your order " + request.getOrderId() + " has been processed";

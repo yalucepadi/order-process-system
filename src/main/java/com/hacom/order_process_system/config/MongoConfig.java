@@ -1,7 +1,7 @@
 package com.hacom.order_process_system.config;
 
-import com.hacom.order_process_system.util.OffsetDateTimeReadConverter;
-import com.hacom.order_process_system.util.OffsetDateTimeWriteConverter;
+import com.hacom.order_process_system.util.DateToOffsetDateTimeConverter;
+import com.hacom.order_process_system.util.OffsetDateTimeToDateConverter;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
 import org.slf4j.Logger;
@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mongodb.config.AbstractReactiveMongoConfiguration;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
@@ -46,14 +47,11 @@ public class MongoConfig extends AbstractReactiveMongoConfiguration {
     }
 
     @Bean
-    @Override
     public MongoCustomConversions customConversions() {
-        logger.info("Registering custom Mongo converters for OffsetDateTime");
-        return new MongoCustomConversions(
-                List.of(
-                        new OffsetDateTimeReadConverter(),
-                        new OffsetDateTimeWriteConverter()
-                )
+        List<Converter<?, ?>> converters = List.of(
+                new DateToOffsetDateTimeConverter(),
+                new OffsetDateTimeToDateConverter()
         );
+        return new MongoCustomConversions(converters);
     }
 }
