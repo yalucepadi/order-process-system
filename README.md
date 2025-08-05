@@ -34,33 +34,6 @@ src/main/java/com/hacom/order_process_system
 └── model/                # Modelos y DTOs
 ```
 
----
-
-## ⚙️ Configuración
-
-Variables en `application.yml` o `application.properties`:
-
-```yaml
-app:
-  api:
-    port: 8080
-  mongodb:
-    uri: mongodb://localhost:27017
-    database: orders_db
-
-grpc:
-  server:
-    port: 9090
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: prometheus, health, info
-```
-
----
-
 ## 📌 Endpoints REST
 
 ### Obtener estado de una orden
@@ -176,3 +149,5 @@ grpcurl -plaintext -d "{\"order_id\": \"ORDER-001\", \"customer_id\": \"CUSTOMER
 2. **gRPC** envía mensaje a **OrderProcessingActor**.
 3. Actor guarda en **MongoDB** y envía **SMS** simulado.
 4. Métricas registradas en **Prometheus**.
+
+
