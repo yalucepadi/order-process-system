@@ -8,12 +8,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MetricsConfig {
 
-    @Bean
-    public Counter orderReceivedCounter(MeterRegistry meterRegistry) {
-        return Counter.builder("orders.received")
-                .description("Number of orders received via gRPC")
-                .register(meterRegistry);
-    }
 
     @Bean
     public Counter orderProcessedCounter(MeterRegistry meterRegistry) {
