@@ -1,133 +1,110 @@
-# Order Processing System - HACOM Backend Evaluation
+# Order Process System
 
-## Descripción
+Microservicio para la gestión y procesamiento de órdenes, desarrollado con **Spring Boot 3**, **Spring WebFlux**, **gRPC**, **Akka Classic Actors**, **MongoDB Reactivo**, **SMPP** y **Micrometer + Prometheus**.
 
-Sistema de procesamiento de pedidos que integra múltiples tecnologías utilizadas en proyectos Telco. El sistema recibe pedidos a través de gRPC, los procesa usando Akka Actors, los almacena en MongoDB y envía notificaciones SMS usando SMPP.
+El sistema soporta entrada tanto por **REST** como por **gRPC**, procesa de forma asíncrona con **Akka**, persiste en MongoDB, envía notificaciones SMS vía SMPP y expone métricas para monitoreo.
 
-## Tecnologías Integradas
+---
 
-- **Spring Boot 3.2.0** con Java 17
-- **Spring WebFlux** - API reactiva
-- **Spring Data MongoDB Reactive** - Base de datos reactiva
-- **gRPC** - Servicio de creación de pedidos
-- **Akka Classic Actors** - Procesamiento asíncrono
-- **MongoDB** - Almacenamiento de datos
-- **SMPP (Cloudhopper)** - Envío de SMS
-- **Log4j2** - Sistema de logging
-- **Prometheus** - Métricas con Spring Actuator
-- **Gradle** - Gestión de dependencias
+## 🚀 Tecnologías Usadas
+- **Spring Boot 3.2.0**
+- **Spring WebFlux** (programación reactiva)
+- **Spring Data MongoDB Reactivo**
+- **Spring Boot Actuator**
+- **gRPC con Protobuf**
+- **Akka Classic Actors**
+- **Cloudhopper SMPP**
+- **Micrometer + Prometheus**
+- **SLF4J + Log4j2**
 
-## Estructura del Proyecto
+---
+
+## 📂 Estructura del Proyecto
 
 ```
-src/
-├── main/
-│   ├── java/com/hacom/
-│   │   ├── OrderProcessingApplication.java      # Clase principal
-│   │   ├── actor/
-│   │   │   └── OrderProcessingActor.java        # Actor Akka
-│   │   ├── config/
-│   │   │   ├── AkkaConfig.java                  # Configuración Akka
-│   │   │   ├── MongoConfig.java                 # Configuración MongoDB
-│   │   │   └── WebFluxConfig.java               # Configuración WebFlux
-│   │   ├── controller/
-│   │   │   └── OrderController.java             # API REST
-│   │   ├── grpc/
-│   │   │   └── OrderGrpcService.java            # Servicio gRPC
-│   │   ├── model/
-│   │   │   └── Order.java                       # Modelo de datos
-│   │   ├── repository/
-│   │   │   └── OrderRepository.java             # Repositorio MongoDB
-│   │   └── service/
-│   │       └── SmsService.java                  # Servicio SMPP
-│   ├── proto/
-│   │   └── orderRequest.proto                          # Definición gRPC
-│   └── resources/
-│       ├── application.yml                      # Configuración principal
-│       └── log4j2.yml                           # Configuración logging
-├── build.gradle                                 # Configuración Gradle
-└── README.md                                    # Este archivo
+src/main/java/com/hacom/order_process_system
+│
+├── config/               # Configuración de Akka, Mongo, Métricas y WebFlux
+├── controller/           # Controladores REST
+├── grpc/                 # Implementaciones de servicios gRPC
+├── actor/                # Actores de Akka para procesamiento concurrente
+├── repository/           # Repositorios MongoDB reactivos
+├── service/              # Servicios y lógica de negocio
+│   └── proxy/sms/        # Implementación de servicio SMPP
+└── model/                # Modelos y DTOs
 ```
 
-## Configuración
+---
 
-### Variables de Configuración (application.yml)
+## ⚙️ Configuración
+
+Variables en `application.yml` o `application.properties`:
 
 ```yaml
 app:
-  mongodb:
-    database: exampleDb
-    uri: "mongodb://127.0.0.1:27017"
   api:
-    port: 9898
+    port: 8080
+  mongodb:
+    uri: mongodb://localhost:27017
+    database: orders_db
+
+grpc:
+  server:
+    port: 9090
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health, info
 ```
 
-### Puertos
+---
 
-- **WebFlux API**: 9898
-- **gRPC Server**: 9090
-- **MongoDB**: 27017 (por defecto)
-- **SMPP**: 2775 (configurable en SmsService)
+## 📌 Endpoints REST
 
-## Prerequisitos
-
-1. **Java 17** instalado
-2. **MongoDB** ejecutándose en `localhost:27017`
-3. **Servidor SMPP** (opcional, para pruebas reales de SMS)
-
-## Instalación y Ejecución
-
-### 1. Clonar el repositorio
-```bash
-git clone <repository-url>
-cd orderRequest-processing-system
-```
-
-### 2. Compilar el proyecto
-```bash
-./gradlew build
-```
-
-### 3. Ejecutar la aplicación
-```bash
-./gradlew bootRun
-```
-
-## API Endpoints
-
-### REST API (Puerto 9898)
-
-#### 1. Consultar estado de pedido
+### Obtener estado de una orden
 ```http
 GET /api/orders/{orderId}/status
 ```
-
 **Respuesta:**
 ```json
 {
-  "orderId": "12345",
-  "status": "PROCESSED"
+    "code": "200",
+    "status": 200,
+    "comment": "Order found successfully",
+    "data": {
+        "orderId": "ORDER-003",
+        "status": "PROCESSED",
+        "timestamp": "2025-08-05T03:54:23.552Z"
+    }
 }
 ```
 
-#### 2. Consultar total de pedidos por rango de fecha
+### Contar órdenes por rango de fechas
 ```http
-GET /api/orders/count?startDate=2024-01-01T00:00:00Z&endDate=2024-12-31T23:59:59Z
+GET /api/orders/count?startDate=2024-08-01T00:00:00Z&endDate=2025-08-04T03:56:04.474Z
 ```
-
 **Respuesta:**
 ```json
 {
-  "startDate": "2024-01-01T00:00:00Z",
-  "endDate": "2024-12-31T23:59:59Z",
-  "totalOrders": 150
+    "code": "200",
+    "status": 200,
+    "comment": "Order count retrieved successfully",
+    "data": {
+        "totalOrders": 2,
+        "startDate": "2024-08-01T00:00:00Z",
+        "endDate": "2025-08-04T03:56:04.474Z"
+    }
 }
 ```
 
-### gRPC Service (Puerto 9090)
+---
 
-#### Crear Pedido
-```protobuf
+## 📌 Servicio gRPC
+
+### Definición en `order.proto`
+```proto
 service OrderService {
   rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
 }
@@ -145,114 +122,57 @@ message CreateOrderResponse {
 }
 ```
 
-## Métricas y Monitoreo
+**Puerto gRPC:** `9090` (configurable)
 
-### Spring Actuator Endpoints
+---
 
-- **Health**: `http://localhost:9898/actuator/health`
-- **Prometheus**: `http://localhost:9898/actuator/prometheus`
-- **Metrics**: `http://localhost:9898/actuator/metrics`
+## 📊 Métricas y Monitoreo
 
-### Métricas Personalizadas
+- **Endpoint Prometheus:**  
+  ```
+  GET /actuator/prometheus
+  ```
+- **Métricas personalizadas:**
+  - `orders.created` → Órdenes creadas vía gRPC.
+  - `orders.processed` → Órdenes procesadas exitosamente.
 
-- `orders.created` - Contador de pedidos creados
+Ejemplo en Prometheus:
+```
+# HELP orders_received_total Number of orders received via gRPC
+# TYPE orders_received_total counter
+orders_received_total 120.0
+```
 
-## Flujo de Procesamiento
+---
 
-1. **Cliente envía pedido** via gRPC al `OrderGrpcService`
-2. **Incrementa contador** de Prometheus
-3. **Envía mensaje** al `OrderProcessingActor` (Akka)
-4. **Actor procesa pedido**:
-    - Crea objeto `Order`
-    - Guarda en MongoDB
-    - Envía SMS via SMPP
-    - Responde al cliente gRPC
-5. **Logs** se registran en todas las etapas
+## 💬 Notificaciones SMS
 
-## Pruebas
+- Implementadas en `SmsServiceImpl` usando **Cloudhopper SMPP**.
+- Configuración de host, puerto y credenciales SMPP en `init()`.
+- Envía mensaje de confirmación al cliente una vez procesada la orden.
 
-### Usando grpcurl (Cliente gRPC)
+---
 
+## ▶️ Ejecución
+
+### Compilar
 ```bash
-# Instalar grpcurl
-go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
-
-# Crear pedido
-grpcurl -plaintext -d '{
-  "order_id": "12345",
-  "customer_id": "CUST001",
-  "customer_phone_number": "1234567890",
-  "items": ["item1", "item2", "item3"]
-}' localhost:9090 orderRequest.OrderService/CreateOrder
+./gradlew clean build
 ```
 
-### Usando curl (API REST)
 
+
+### Probar gRPC
+Usar [grpcurl](https://github.com/fullstorydev/grpcurl):
 ```bash
-# Consultar estado de pedido
-curl http://localhost:9898/api/orders/12345/status
-
-# Consultar total de pedidos
-curl "http://localhost:9898/api/orders/count?startDate=2024-01-01T00:00:00Z&endDate=2024-12-31T23:59:59Z"
+grpcurl -plaintext -d "{\"order_id\": \"ORDER-001\", \"customer_id\": \"CUSTOMER-123\", \"customer_phone_number\": \"1234567890\", \"items\": [\"Producto A\", \"Producto B\"]}" localhost:9090 order.OrderService/CreateOrder
 ```
 
-## Logging
+---
 
-Los logs se guardan en:
-- **Consola**: Formato legible para desarrollo
-- **Archivo**: `logs/application.log` con rotación diaria
+## 📈 Arquitectura
 
-## Notas de Configuración
-
-### MongoDB
-- Configuración programática en `MongoConfig.java`
-- No usa la configuración automática de Spring Boot
-
-### WebFlux
-- Puerto configurado programáticamente en `WebFluxConfig.java`
-- Servidor Netty reactivo
-
-### SMPP
-- Cliente configurado para pruebas locales
-- Requiere servidor SMPP real para funcionalidad completa
-
-## Arquitectura
-
-```
-[Cliente] --> [gRPC Service] --> [Akka Actor] --> [MongoDB]
-                    |                 |
-                    v                 v
-              [Prometheus]        [SMPP SMS]
-```
-
-## Consideraciones de Producción
-
-1. **SMPP**: Configurar credenciales reales del proveedor
-2. **MongoDB**: Configurar autenticación y SSL
-3. **Logging**: Ajustar niveles para producción
-4. **Métricas**: Configurar alertas en Prometheus
-5. **Error Handling**: Implementar circuit breakers
-6. **Security**: Agregar autenticación/autorización
-
-## Troubleshooting
-
-### Problemas Comunes
-
-1. **MongoDB no conecta**: Verificar que esté ejecutándose en puerto 27017
-2. **Puerto en uso**: Cambiar puertos en `application.yml`
-3. **gRPC no responde**: Verificar firewall y puerto 9090
-4. **SMPP falla**: Normal si no hay servidor SMPP configurado
-
-### Logs Útiles
-
-```bash
-# Ver logs en tiempo real
-tail -f logs/application.log
-
-# Filtrar logs de pedidos
-grep "Processing orderRequest" logs/application.log
-```
-
-## Autor
-
-Desarrollado para evaluación técnica HACOM - Backend Java
+1. **REST o gRPC** recibe la orden.
+2. **gRPC** envía mensaje a **OrderProcessingActor**.
+3. Actor guarda en **MongoDB** y envía **SMS** simulado.
+4. Métricas registradas en **Prometheus**.
