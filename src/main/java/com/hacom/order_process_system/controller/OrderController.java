@@ -8,6 +8,8 @@ import com.hacom.order_process_system.repository.OrderRepository;
 import com.hacom.order_process_system.service.impl.OrderServiceImpl;
 import com.hacom.order_process_system.util.Constants;
 import com.hacom.order_process_system.util.OderAdapter;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,41 +92,43 @@ public class OrderController {
 
     @GetMapping("/count")
     public Mono<ResponseEntity<ResponseGeneralDto>> getOrderCountByDateRange(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime endDate) {
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
         logger.info("Getting order count between {} and {}", startDate, endDate);
 
-        return orderServiceImpl.countOrdersByDateRange(startDate, endDate)
-                .map(count -> {
-                    logger.info("Found {} orders between {} and {}", count, startDate, endDate);
+        // Convertir LocalDate a OffsetDateTime si tu servicio lo necesita
+        OffsetDateTime startDateTime = startDate.atStartOfDay().atOffset(ZoneOffset.UTC);
+        OffsetDateTime endDateTime = endDate.atTime(23, 59, 59).atOffset(ZoneOffset.UTC);
 
+        return orderServiceImpl.countOrdersByDateRange(startDateTime, endDateTime)
+            .map(count -> {
+                logger.info("Found {} orders between {} and {}", count, startDate, endDate);
 
-                    OrderCountResponse countResponse = new OrderCountResponse();
-                    countResponse.setStartDate(startDate);
-                    countResponse.setEndDate(endDate);
-                    countResponse.setTotalOrders(count);
+                OrderCountResponse countResponse = new OrderCountResponse();
+                countResponse.setStartDate(startDateTime);
+                countResponse.setEndDate(endDateTime);
+                countResponse.setTotalOrders(count);
 
+                ResponseGeneralDto response = OderAdapter.responseGeneral(
+                    Constants.HTTP_200,
+                    HttpStatus.OK.value(),
+                    "Order count retrieved successfully",
+                    countResponse
+                );
 
-                    ResponseGeneralDto response = OderAdapter.responseGeneral(
-                            Constants.HTTP_200,
-                            HttpStatus.OK.value(),
-                            "Order count retrieved successfully",
-                            countResponse
-                    );
+                return ResponseEntity.ok(response);
+            })
+            .onErrorResume(error -> {
+                logger.error("Error getting order count: {}", error.getMessage(), error);
 
-                    return ResponseEntity.ok(response);
-                })
-                .onErrorResume(error -> {
-                    logger.error("Error getting order count: {}", error.getMessage(), error);
-
-                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(OderAdapter.responseGeneral(
-                                    Constants.HTTP_500,
-                                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                    "Error retrieving order count",
-                                    error.getMessage())));
-                });
+                return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(OderAdapter.responseGeneral(
+                        Constants.HTTP_500,
+                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        "Error retrieving order count",
+                        error.getMessage())));
+            });
     }
 
     }
