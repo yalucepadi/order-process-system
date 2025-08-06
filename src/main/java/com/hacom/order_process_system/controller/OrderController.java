@@ -97,7 +97,6 @@ public class OrderController {
 
         logger.info("Getting order count between {} and {}", startDate, endDate);
 
-        // Convertir LocalDate a OffsetDateTime si tu servicio lo necesita
         OffsetDateTime startDateTime = startDate.atStartOfDay().atOffset(ZoneOffset.UTC);
         OffsetDateTime endDateTime = endDate.atTime(23, 59, 59).atOffset(ZoneOffset.UTC);
 
