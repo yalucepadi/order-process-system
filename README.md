@@ -130,7 +130,7 @@ orders_received_total 120.0
 
 ### Compilar
 ```bash
-./gradlew clean build
+gradlew.bat bootRun
 ```
 
 
